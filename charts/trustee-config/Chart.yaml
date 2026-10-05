@@ -1,0 +1,9 @@
+apiVersion: v2
+name: trustee-config
+description: >-
+  Configures the Trustee Key Broker Service (KBS) on the attestation cluster:
+  KbsConfig CR, KBS config/policy/reference-value ConfigMaps, the KBS auth key,
+  and the attested secret resources (sourced from Vault via ESO).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

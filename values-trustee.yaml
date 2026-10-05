@@ -1,0 +1,42 @@
+# Trustee cluster - the trusted attestation control plane.
+#
+# Holds the Validated Patterns secrets infrastructure (Vault + ESO) and the
+# Trustee operator (Key Broker Service / Attestation Service). Secrets that
+# should only be released to attested confidential workloads live in Vault and
+# are projected into Trustee's KBS resources via ESO.
+clusterGroup:
+  name: trustee
+  namespaces:
+    vault:
+    external-secrets:
+    external-secrets-operator:
+      operatorGroup: true
+      targetNamespaces: []
+    trustee-operator-system:
+      operatorGroup: true
+      targetNamespaces:
+        - trustee-operator-system
+  subscriptions:
+    eso:
+      name: openshift-external-secrets-operator
+      namespace: external-secrets-operator
+      channel: stable-v1
+    trustee:
+      name: trustee-operator
+      namespace: trustee-operator-system
+      channel: stable
+  applications:
+    openshift-external-secrets:
+      name: openshift-external-secrets
+      namespace: external-secrets
+      chart: openshift-external-secrets
+      chartVersion: 0.0.*
+    vault:
+      name: vault
+      namespace: vault
+      chart: hashicorp-vault
+      chartVersion: 0.1.*
+    trustee-config:
+      name: trustee-config
+      namespace: trustee-operator-system
+      path: charts/trustee-config

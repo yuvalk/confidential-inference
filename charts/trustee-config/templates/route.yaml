@@ -1,0 +1,21 @@
+{{- if .Values.kbs.route.enabled }}
+# Exposes the KBS so confidential workloads on the inference cluster can attest.
+# The resulting hostname is what global.confidentialInference.kbsUrl must point to.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: kbs
+  namespace: {{ .Values.namespace }}
+spec:
+  {{- with .Values.kbs.route.host }}
+  host: {{ . }}
+  {{- end }}
+  to:
+    kind: Service
+    name: kbs-service
+  port:
+    targetPort: kbs-port
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}

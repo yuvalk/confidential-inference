@@ -3,8 +3,32 @@ global:
   singleArgoCD: true
   secretLoader:
     disabled: false
+
+  # Cross-cluster configuration for the confidential-inference pattern.
+  #
+  # This pattern is installed INDEPENDENTLY on two clusters (no ACM):
+  #   * clusterGroupName "trustee"   - the trusted attestation cluster
+  #                                    (Vault + ESO + Trustee/KBS).
+  #   * clusterGroupName "inference" - the confidential workload cluster
+  #                                    (OpenShift sandboxed containers / CoCo + vLLM).
+  #
+  # main.clusterGroupName below selects which cluster THIS install targets.
+  # Install the trustee cluster first (main.clusterGroupName: trustee). To install
+  # the inference cluster, set main.clusterGroupName to "inference" before running
+  # `./pattern.sh make install` against it - e.g. commit it on a short-lived
+  # "inference" branch and point that cluster's Pattern at that branch, so each
+  # cluster tracks the clustergroup it should run.
+  confidentialInference:
+    # Public URL of the Trustee Key Broker Service (KBS), reachable from the
+    # inference cluster. After installing the trustee cluster, set this to the
+    # KBS Route hostname, e.g.
+    #   https://kbs-trustee-operator-system.apps.<trustee-cluster-domain>
+    kbsUrl: "https://kbs-trustee-operator-system.apps.trustee.example.com"
+    # Model served by vLLM on the inference cluster.
+    model: "meta-llama/Llama-3.2-1B-Instruct"
+
 main:
-  clusterGroupName: prod
+  clusterGroupName: trustee
   multiSourceConfig:
     enabled: true
     clusterGroupChartVersion: 0.9.*

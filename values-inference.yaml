@@ -1,0 +1,32 @@
+# Inference cluster - the confidential workload cluster.
+#
+# Runs OpenShift sandboxed containers with the Confidential Containers (CoCo)
+# feature enabled, and serves an LLM with vLLM inside a confidential VM. The
+# workload attests to the Trustee/KBS on the trustee cluster (global.
+# confidentialInference.kbsUrl) and only then receives its secrets.
+#
+# Install on the inference cluster with main.clusterGroupName overridden to
+# "inference" (see values-global.yaml). No Vault here - this cluster is not
+# trusted to hold secrets at rest; it obtains them at runtime via attestation.
+clusterGroup:
+  name: inference
+  namespaces:
+    confidential-inference:
+    openshift-sandboxed-containers-operator:
+      operatorGroup: true
+      targetNamespaces:
+        - openshift-sandboxed-containers-operator
+  subscriptions:
+    sandboxed-containers:
+      name: sandboxed-containers-operator
+      namespace: openshift-sandboxed-containers-operator
+      channel: stable
+  applications:
+    coco-config:
+      name: coco-config
+      namespace: openshift-sandboxed-containers-operator
+      path: charts/coco-config
+    vllm:
+      name: vllm
+      namespace: confidential-inference
+      path: charts/vllm

@@ -1,0 +1,13 @@
+# Creating the KataConfig installs the kata-remote RuntimeClass. NOTE: this
+# reboots worker nodes (can take 10-60+ minutes) and must be created AFTER the
+# feature-gate and peer-pods ConfigMaps above.
+apiVersion: {{ .Values.kataConfig.apiVersion }}
+kind: KataConfig
+metadata:
+  name: {{ .Values.kataConfig.name }}
+spec:
+  enablePeerPods: {{ .Values.kataConfig.enablePeerPods }}
+  {{- with .Values.kataConfig.poolSelector }}
+  kataConfigPoolSelector:
+{{ toYaml . | indent 4 }}
+  {{- end }}

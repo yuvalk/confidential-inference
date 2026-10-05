@@ -1,0 +1,29 @@
+# Namespace of the OpenShift sandboxed containers operator.
+namespace: openshift-sandboxed-containers-operator
+
+kataConfig:
+  # apiVersion of the KataConfig CRD (sandboxed-containers-operator).
+  apiVersion: kataconfiguration.openshift.io/v1
+  name: cluster-kataconfig
+  # Peer pods are required for the Confidential Containers runtime.
+  enablePeerPods: true
+  # Restrict which nodes get the kata-remote runtime. Empty = all worker nodes.
+  # Example to target a labeled pool:
+  #   poolSelector:
+  #     matchLabels:
+  #       node-role.kubernetes.io/kata-oc: ""
+  poolSelector: {}
+
+# Peer-pods configuration. These values are cloud/platform specific; the entries
+# below are placeholders. Populate for your platform (libvirt/bare-metal, AWS,
+# Azure, ...) per the OpenShift sandboxed containers docs before deploying.
+peerPods:
+  cloudProvider: libvirt
+  # Extra key/value pairs merged into the peer-pods-cm ConfigMap.
+  extraConfig: {}
+
+global:
+  confidentialInference:
+    # Overridden by values-global.yaml at deploy time. Used to point the
+    # attestation agent at the Trustee KBS on the trustee cluster.
+    kbsUrl: "https://kbs-trustee-operator-system.apps.trustee.example.com"

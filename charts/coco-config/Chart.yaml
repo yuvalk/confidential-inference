@@ -1,0 +1,9 @@
+apiVersion: v2
+name: coco-config
+description: >-
+  Enables the Confidential Containers (CoCo) feature of OpenShift sandboxed
+  containers and creates the KataConfig that installs the kata-remote runtime.
+  Also wires the peer-pods config (including the Trustee/KBS attestation URL).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

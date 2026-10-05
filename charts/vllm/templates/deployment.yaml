@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: vllm
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+      annotations:
+        # Confidential data hub resource URI for the Hugging Face token. The kata
+        # agent resolves this against the Trustee KBS (AA_KBC_PARAMS) after the
+        # confidential VM successfully attests.
+        {{- if eq .Values.hfToken.source "kbs" }}
+        io.katacontainers.config.hypervisor.kernel_params: ""
+        {{- end }}
+    spec:
+      # Makes this a Confidential Container.
+      runtimeClassName: {{ .Values.runtimeClassName }}
+      containers:
+        - name: vllm
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "--model"
+            - {{ .Values.global.confidentialInference.model | quote }}
+            - "--port"
+            - {{ .Values.service.port | quote }}
+          env:
+            {{- if eq .Values.hfToken.source "kbs" }}
+            # Resolved from the Trustee KBS at runtime via the confidential data hub.
+            - name: HF_TOKEN
+              value: {{ .Values.hfToken.kbsResourceUri | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory | quote }}
+              {{- if gt (int .Values.gpu.count) 0 }}
+              {{ .Values.gpu.resourceName }}: {{ .Values.gpu.count }}
+              {{- end }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+              memory: {{ .Values.resources.limits.memory | quote }}
+              {{- if gt (int .Values.gpu.count) 0 }}
+              {{ .Values.gpu.resourceName }}: {{ .Values.gpu.count }}
+              {{- end }}

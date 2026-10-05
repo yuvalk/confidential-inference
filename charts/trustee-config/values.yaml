@@ -1,0 +1,75 @@
+# Namespace the Trustee operator and its operands run in.
+namespace: trustee-operator-system
+
+# KbsConfig CRD apiVersion. The upstream/openshift trustee-operator uses the
+# confidentialcontainers.org group. Verify against the installed operator's CRD
+# (oc get crd kbsconfigs.confidentialcontainers.org) and adjust if needed.
+kbsConfigApiVersion: confidentialcontainers.org/v1alpha1
+
+kbs:
+  # AllInOneDeployment runs KBS + Attestation Service + RVPS in a single pod.
+  deploymentType: AllInOneDeployment
+  # Expose the KBS via an OpenShift Route so the inference cluster can reach it.
+  route:
+    enabled: true
+    # host: ""   # leave empty to let OpenShift generate the hostname
+
+# ESO wiring (see the Validated Patterns secrets framework). The vault-backend
+# ClusterSecretStore is created by the openshift-external-secrets chart.
+secretStore:
+  name: vault-backend
+  kind: ClusterSecretStore
+
+# Secrets served to attested workloads. Each key below becomes a KBS resource at
+# default/kbsres1/<key> and is fetched from Vault at secret/data/global/<...>.
+kbsResources:
+  key: secret/data/global/confidential-inference
+  refreshInterval: 2m0s
+  # Fields fetched from the Vault secret above and exposed as KBS resources.
+  fields:
+    - hf-token
+
+# KBS admin auth public key (ES256). The matching private key is used by the
+# cluster admin to register resources/policies with KBS. Provide the public key
+# in Vault (see values-secret.yaml.template) under this path/property.
+authKey:
+  key: secret/data/global/kbs-auth
+  refreshInterval: 2m0s
+  property: public-key
+
+# Reference values (RVPS) and resource-release policy. The defaults below are
+# permissive placeholders suitable for bring-up only. Tighten the resource
+# policy and populate reference values before any production use.
+referenceValues: "[]"
+
+# Rego policy controlling which attested clients may read which resources.
+# Default: allow all. REPLACE for production.
+resourcePolicyRego: |
+  package policy
+  default allow = true
+
+# kbs-config.toml rendered into the kbs-config-cm ConfigMap.
+kbsConfigToml: |
+  [http_server]
+  sock = "0.0.0.0:8080"
+  insecure_http = true
+
+  [admin]
+  auth_public_key = "/etc/auth-secret/kbs.pem"
+
+  [attestation_token_config]
+  attestation_token_type = "CoCo"
+
+  [as_config]
+  work_dir = "/opt/confidential-containers/attestation-service"
+  policy_engine = "opa"
+  attestation_token_broker = "Simple"
+
+  [as_config.attestation_token_config]
+  duration_min = 5
+
+  [as_config.rvps_config]
+  store_type = "LocalFs"
+
+  [policy_engine_config]
+  policy_path = "/opt/confidential-containers/kbs/policy.rego"

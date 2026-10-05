@@ -1,0 +1,47 @@
+namespace: confidential-inference
+
+image:
+  repository: quay.io/modh/vllm
+  tag: "rhoai-2.19-cuda"
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+# RuntimeClass created by the KataConfig on the inference cluster. This is what
+# makes the pod run as a Confidential Container.
+runtimeClassName: kata-remote
+
+service:
+  port: 8000
+
+route:
+  enabled: true
+  # host: ""
+
+# GPU scheduling. Confidential GPU is advanced; set gpu.count to 0 to run on CPU
+# (small models only) or adjust for your accelerator.
+gpu:
+  count: 1
+  resourceName: nvidia.com/gpu
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 16Gi
+  limits:
+    cpu: "8"
+    memory: 24Gi
+
+# How the Hugging Face token reaches the pod. With "kbs" (default), the token is
+# NOT stored in a Kubernetes Secret; it is fetched from the Trustee KBS after the
+# confidential VM attests, exposed to the container via the confidential data hub
+# at the sealed-secret / kbs resource URI below.
+hfToken:
+  source: kbs
+  # KBS resource URI backing the token (served by the trustee-config chart as
+  # default/kbsres1/hf-token).
+  kbsResourceUri: "kbs:///default/kbsres1/hf-token"
+
+global:
+  confidentialInference:
+    model: "meta-llama/Llama-3.2-1B-Instruct"

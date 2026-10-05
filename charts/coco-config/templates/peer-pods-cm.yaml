@@ -1,0 +1,15 @@
+# Peer-pods configuration consumed by the sandboxed containers operator.
+# CLOUD_PROVIDER and the cloud-specific keys must match your environment.
+# AA_KBC_PARAMS points the attestation agent at the Trustee KBS on the trustee
+# cluster so the confidential VM can attest and retrieve its secrets.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: peer-pods-cm
+  namespace: {{ .Values.namespace }}
+data:
+  CLOUD_PROVIDER: {{ .Values.peerPods.cloudProvider | quote }}
+  AA_KBC_PARAMS: {{ printf "cc_kbc::%s" .Values.global.confidentialInference.kbsUrl | quote }}
+  {{- range $k, $v := .Values.peerPods.extraConfig }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}

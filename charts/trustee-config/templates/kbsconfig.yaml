@@ -1,0 +1,13 @@
+apiVersion: {{ .Values.kbsConfigApiVersion }}
+kind: KbsConfig
+metadata:
+  name: kbsconfig
+  namespace: {{ .Values.namespace }}
+spec:
+  kbsConfigMapName: kbs-config-cm
+  kbsAuthSecretName: kbs-auth-public-key
+  kbsDeploymentType: {{ .Values.kbs.deploymentType }}
+  kbsRvpsRefValuesConfigMapName: rvps-reference-values
+  kbsResourcePolicyConfigMapName: resource-policy
+  kbsSecretResources:
+    - kbsres1

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: vllm
+description: >-
+  Serves an LLM with vLLM inside a Confidential Container (kata-remote runtime).
+  The pod attests to the Trustee/KBS and retrieves its secrets (e.g. the Hugging
+  Face token) at runtime rather than from a Kubernetes Secret at rest.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,8 @@
+# Enables the Confidential Containers feature of the sandboxed containers operator.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osc-feature-gates
+  namespace: {{ .Values.namespace }}
+data:
+  confidential-containers: "true"
